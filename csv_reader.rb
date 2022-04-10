@@ -7,7 +7,7 @@ get '/' do
   begin
     con = PG.connect :host => 'localhost', :port => 5432, :dbname => 'postgres', :user => 'postgres',
     :password => '123456'
-    con.exec "SELECT cpf FROM tests"
+    @bla = con.exec("SELECT * FROM tests").entries
   rescue PG::Error => e
     puts e.message      
   ensure
@@ -31,6 +31,19 @@ post '/save_data' do
   redirect '/'
 end
 
+get '/tests/:token' do
+  begin
+    con = PG.connect :host => 'localhost', :port => 5432, :dbname => 'postgres', :user => 'postgres',
+    :password => '123456'
+    @result = con.exec("SELECT * FROM tests WHERE token_resultado_exame = '#{params['token']}' ").entries
+  rescue PG::Error => e
+    puts e.message      
+  ensure
+    con.close if con  
+  end
+  erb :tests
+end
+
 def save_db(namefile)
   begin
     con = PG.connect :host => 'localhost', :port => 5432, :dbname => 'postgres', :user => 'postgres',
@@ -39,7 +52,8 @@ def save_db(namefile)
     data_nascimento_paciente varchar(50), endereço_rua_paciente varchar(50), cidade_paciente varchar(50), estado_paciente varchar(50),
     crm_medico varchar(50), crm_medico_estado varchar(50), nome_medico varchar(50), email_medico varchar(50), 
     token_resultado_exame varchar(50), data_exame varchar(50), tipo_exame varchar(50), limites_tipo_exame varchar(50), resultado_tipo_exame varchar(50))"
-    con.exec "COPY tests FROM '/home/fernandoinkapuri/workspace/clinickr/public/#{namefile}' with delimiter as ';'"
+    
+    con.exec "copy tests FROM '/home/fernandoinkapuri/workspace/clinickr/public/#{namefile}' with delimiter as ';'"
   rescue PG::Error => e
     puts e.message      
   ensure
